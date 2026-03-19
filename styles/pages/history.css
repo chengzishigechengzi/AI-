@@ -1,0 +1,4 @@
+.history-page {
+  display: grid;
+  gap: var(--space-lg);
+}

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta
+    name="description"
+    content="AI 仿真用户体验测试工具，面向产品经理、交互设计师与 UI 设计师，支持页面测试、流程测试、用户画像管理与历史记录查看。"
+  >
+  <title>AI 仿真用户体验测试工具</title>
+  <link rel="stylesheet" href="styles/variables.css">
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/layout.css">
+  <link rel="stylesheet" href="styles/components.css">
+  <link rel="stylesheet" href="styles/pages/home.css">
+  <link rel="stylesheet" href="styles/pages/page-test.css">
+  <link rel="stylesheet" href="styles/pages/flow-test.css">
+  <link rel="stylesheet" href="styles/pages/history.css">
+  <link rel="stylesheet" href="styles/responsive.css">
+</head>
+<body>
+  <div id="app" class="app-shell" data-app="ai-usability-simulator">
+    <aside id="app-sidebar" class="app-sidebar" aria-label="主导航">
+      <div class="sidebar-brand">
+        <a class="sidebar-brand__link" href="#/" data-route="home" aria-label="返回首页">
+          <span class="sidebar-brand__mark" aria-hidden="true">AI</span>
+          <span class="sidebar-brand__text">
+            <strong>AI 仿真用户体验测试工具</strong>
+            <small>AI Usability Simulator</small>
+          </span>
+        </a>
+      </div>
+
+      <nav class="sidebar-nav" aria-label="核心功能导航">
+        <button type="button" class="sidebar-nav__item is-active" data-route="home" aria-current="page">
+          <span class="sidebar-nav__label">首页</span>
+          <span class="sidebar-nav__hint">概览与入口</span>
+        </button>
+        <button type="button" class="sidebar-nav__item" data-route="page-test">
+          <span class="sidebar-nav__label">页面测试</span>
+          <span class="sidebar-nav__hint">单张设计图体验分析</span>
+        </button>
+        <button type="button" class="sidebar-nav__item" data-route="flow-test">
+          <span class="sidebar-nav__label">流程测试</span>
+          <span class="sidebar-nav__hint">多页面流程仿真测试</span>
+        </button>
+        <button type="button" class="sidebar-nav__item" data-route="history">
+          <span class="sidebar-nav__label">历史记录</span>
+          <span class="sidebar-nav__hint">查看与复盘测试结果</span>
+        </button>
+        <button type="button" class="sidebar-nav__item" data-route="personas">
+          <span class="sidebar-nav__label">用户画像</span>
+          <span class="sidebar-nav__hint">管理测试对象设定</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-footer__card">
+          <p class="sidebar-footer__title">工作台状态</p>
+          <p class="sidebar-footer__meta">已就绪，等待开始新的可用性测试。</p>
+        </div>
+      </div>
+    </aside>
+
+    <div class="app-main-shell">
+      <header id="app-header" class="app-header">
+        <div class="app-header__intro">
+          <p class="app-header__eyebrow">专业版 AI 可用性评估工作台</p>
+          <div class="app-header__titles">
+            <h1 id="page-title">首页</h1>
+            <p id="page-subtitle">管理用户画像、浏览历史记录，并从这里发起新的页面或流程测试。</p>
+          </div>
+        </div>
+
+        <div class="app-header__tools">
+          <div class="app-header__search" role="search" aria-label="全局搜索占位">
+            <label class="sr-only" for="global-search">搜索测试、画像或记录</label>
+            <input
+              id="global-search"
+              class="app-header__search-input"
+              type="search"
+              name="global-search"
+              placeholder="搜索测试、画像或记录"
+              autocomplete="off"
+            >
+          </div>
+
+          <div class="app-header__status" aria-label="工作区状态">
+            <span class="status-pill">Workspace Ready</span>
+          </div>
+
+          <div class="app-header__actions">
+            <button type="button" class="button button--secondary" data-action="open-command-palette">
+              快捷操作
+            </button>
+            <button type="button" class="button button--primary" data-action="create-test">
+              新建测试
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main id="app-main" class="app-main" aria-label="主内容区">
+        <section id="app-view" class="app-view" data-view="home" tabindex="-1">
+          <div class="view-placeholder">
+            <div class="view-placeholder__content">
+              <p class="view-placeholder__eyebrow">Single Page Application</p>
+              <h2 class="view-placeholder__title">准备开始 AI 仿真用户体验测试</h2>
+              <p class="view-placeholder__description">
+                这里将由前端脚本动态渲染首页、新建测试、流程构建、测试结果与历史记录等模块内容。
+              </p>
+              <div class="view-placeholder__actions">
+                <button type="button" class="button button--primary" data-route="page-test">开始页面测试</button>
+                <button type="button" class="button button--ghost" data-route="flow-test">开始流程测试</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div id="modal-root" aria-live="polite" aria-label="弹窗挂载区"></div>
+  <div id="drawer-root" aria-live="polite" aria-label="抽屉挂载区"></div>
+  <div id="toast-root" aria-live="polite" aria-atomic="true" aria-label="消息提示挂载区"></div>
+
+  <script src="scripts/router.js"></script>
+  <script src="scripts/pages/home-page.js"></script>
+  <script src="scripts/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+.flow-page {
+  display: grid;
+  gap: var(--space-lg);
+}

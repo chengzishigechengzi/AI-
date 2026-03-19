@@ -1,0 +1,11 @@
+@media (max-width: 560px) {
+  .app-header__actions,
+  .toolbar,
+  .inline-actions {
+    width: 100%;
+  }
+
+  .button {
+    width: 100%;
+  }
+}
