@@ -159,6 +159,10 @@ kbd {
   pointer-events: none;
 }
 
+#modal-root:not(:empty) {
+  pointer-events: auto;
+}
+
 #modal-root {
   z-index: var(--z-modal);
 }

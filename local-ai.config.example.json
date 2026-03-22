@@ -1,0 +1,7 @@
+{
+  "endpoint": "https://ark.cn-beijing.volces.com/api/v3/chat/completions",
+  "apiKey": "your-api-key-here",
+  "apiKeyHeader": "",
+  "authScheme": "Bearer",
+  "model": "doubao-seed-2-0-pro-260215"
+}

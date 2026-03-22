@@ -17,7 +17,11 @@
   <link rel="stylesheet" href="styles/pages/page-test.css">
   <link rel="stylesheet" href="styles/pages/flow-test.css">
   <link rel="stylesheet" href="styles/pages/history.css">
+  <link rel="stylesheet" href="styles/pages/personas.css">
   <link rel="stylesheet" href="styles/responsive.css">
+  <link rel="stylesheet" href="styles/pages/home-v4.css">
+  <link rel="stylesheet" href="styles/pages/personas-v2.css">
+  <link rel="stylesheet" href="styles/pages/personas-v3.css">
 </head>
 <body>
   <div id="app" class="app-shell" data-app="ai-usability-simulator">
@@ -125,8 +129,28 @@
   <div id="drawer-root" aria-live="polite" aria-label="抽屉挂载区"></div>
   <div id="toast-root" aria-live="polite" aria-atomic="true" aria-label="消息提示挂载区"></div>
 
+  <script>
+    window.__APP_AI_CONFIG__ = Object.assign(
+      {
+        enabled: true,
+        endpoint: "http://localhost:3000/api/ai",
+        apiKey: "",
+        apiKeyHeader: "",
+        authScheme: "Bearer",
+        timeoutMs: 120000,
+        headers: {},
+      },
+      window.__APP_AI_CONFIG__ || {}
+    );
+  </script>
+  <script src="scripts/ai-client.js"></script>
   <script src="scripts/router.js"></script>
   <script src="scripts/pages/home-page.js"></script>
+  <script src="scripts/pages/home-page-v4.js"></script>
+  <script src="scripts/pages/page-test-page-v1.js"></script>
+  <script src="scripts/pages/flow-test-page-v1.js"></script>
+  <script src="scripts/pages/history-page-v1.js"></script>
+  <script src="scripts/pages/personas-page-v4.js"></script>
   <script src="scripts/app.js"></script>
 </body>
 </html>

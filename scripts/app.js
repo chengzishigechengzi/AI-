@@ -1,7 +1,12 @@
 (function startApp(global) {
   const { createHomePage } = global.HomePage;
+  const { createPageTestPage, mountPageTestPage } = global.PageTestPage;
+  const { createFlowTestPage, createFlowTestNextPage, mountFlowTestPage, mountFlowTestNextPage } = global.FlowTestPage;
+  const { createHistoryPage, mountHistoryPage } = global.HistoryPage;
+  const { createPersonasPage } = global.PersonasPage;
   const { getRouteMeta, parseHashRoute, setHashRoute } = global.AppRouter;
 
+  const appShell = document.querySelector("#app");
   const appView = document.querySelector("#app-view");
   const pageTitle = document.querySelector("#page-title");
   const pageSubtitle = document.querySelector("#page-subtitle");
@@ -24,6 +29,13 @@
       eyebrow: "Multi Step Flow",
       description: "流程测试工作区已准备好，下一步可以接入多页面上传、连线配置与流程说明编辑。",
       actionText: "从首页返回",
+      actionRoute: "home",
+    },
+    "flow-test-next": {
+      label: "流程测试",
+      eyebrow: "Flow Test Step 2",
+      description: "流程测试的下一步已经预留，可以继续承接流程校验、分析配置或后续结果页。",
+      actionText: "返回首页",
       actionRoute: "home",
     },
     history: {
@@ -86,17 +98,31 @@
   }
 
   function renderRoute(route) {
+    document.body.setAttribute("data-route", route);
+    appShell?.setAttribute("data-route", route);
     appView.dataset.view = route;
     updateHeader(route);
     updateSidebar(route);
 
     if (route === "home") {
       appView.innerHTML = createHomePage();
+    } else if (route === "page-test") {
+      appView.innerHTML = createPageTestPage();
+      mountPageTestPage();
+    } else if (route === "flow-test") {
+      appView.innerHTML = createFlowTestPage();
+      mountFlowTestPage();
+    } else if (route === "flow-test-next") {
+      appView.innerHTML = createFlowTestNextPage();
+      mountFlowTestNextPage();
+    } else if (route === "history") {
+      appView.innerHTML = createHistoryPage();
+      mountHistoryPage();
+    } else if (route === "personas") {
+      appView.innerHTML = createPersonasPage();
     } else {
       appView.innerHTML = createPlaceholderPage(route);
     }
-
-    appView.focus();
   }
 
   function showToast(message) {
@@ -145,6 +171,9 @@
 
     if (actionTarget === quickActionButton) {
       showToast("快捷操作面板将在后续步骤接入。");
+    }
+    if (actionTarget.dataset.action === "create-persona") {
+      showToast("新建用户画像表单将在下一步接入。");
     }
   });
 

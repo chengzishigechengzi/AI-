@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: ai-usability-workspace
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 22.22.0
+      - key: PORT
+        value: 10000
+      - key: REMOTE_AI_ENDPOINT
+        value: https://ark.cn-beijing.volces.com/api/v3/chat/completions
+      - key: REMOTE_AI_API_KEY
+        sync: false
+      - key: REMOTE_AI_AUTH_SCHEME
+        value: Bearer
+      - key: REMOTE_AI_MODEL
+        value: doubao-seed-2-0-pro-260215

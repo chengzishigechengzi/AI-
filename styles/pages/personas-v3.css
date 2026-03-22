@@ -1,0 +1,194 @@
+.personas-directory--v3 {
+  position: relative;
+}
+
+.persona-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  pointer-events: auto;
+}
+
+.persona-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(0, 0, 0, 0.66);
+  cursor: pointer;
+  animation: personaModalFadeIn 180ms ease-out;
+  pointer-events: auto;
+}
+
+.persona-modal__dialog {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 560px);
+  padding: 24px;
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow: 0 28px 60px rgba(15, 23, 42, 0.22);
+  animation: personaModalDialogIn 200ms ease-out;
+  pointer-events: auto;
+}
+
+.persona-modal__form,
+.persona-modal__field,
+.persona-modal__input,
+.persona-modal__textarea,
+.persona-modal__submit,
+.persona-modal__close {
+  pointer-events: auto;
+}
+
+.persona-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.persona-modal__title {
+  margin: 0;
+  font-size: 2rem;
+  line-height: 1.1;
+  font-weight: 700;
+  color: #1d2433;
+}
+
+.persona-modal__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  transition: background var(--duration-base) var(--ease-standard), color var(--duration-base) var(--ease-standard);
+}
+
+.persona-modal__close:hover {
+  background: rgba(15, 23, 42, 0.06);
+  color: #111827;
+}
+
+.persona-modal__close-icon,
+.persona-modal__close-icon svg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.persona-modal__close-icon svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.persona-modal__form {
+  display: grid;
+  gap: 0;
+}
+
+.persona-modal__field {
+  display: grid;
+  gap: 8px;
+}
+
+.persona-modal__field--textarea {
+  margin-top: 24px;
+}
+
+.persona-modal__label {
+  color: #374151;
+  font-size: 0.98rem;
+  font-weight: 600;
+}
+
+.persona-modal__input,
+.persona-modal__textarea {
+  width: 100%;
+  border: 1px solid rgba(203, 213, 225, 0.9);
+  border-radius: 14px;
+  background: #ffffff;
+  color: #111827;
+  box-shadow: none;
+}
+
+.persona-modal__input {
+  height: 44px;
+  padding: 0 18px;
+}
+
+.persona-modal__textarea {
+  min-height: 200px;
+  padding: 16px 18px;
+  resize: vertical;
+}
+
+.persona-modal__input::placeholder,
+.persona-modal__textarea::placeholder {
+  color: #a0aec0;
+}
+
+.persona-modal__input:focus,
+.persona-modal__textarea:focus {
+  outline: none;
+  border-color: rgba(37, 99, 235, 0.38);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+.persona-modal__error {
+  margin-top: 2px;
+  color: #dc2626;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.persona-modal__error--submit {
+  margin-top: 20px;
+}
+
+.persona-modal__error.is-hidden {
+  display: none;
+}
+
+.persona-modal__submit {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 32px;
+  border-radius: 14px;
+}
+
+@keyframes personaModalFadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes personaModalDialogIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

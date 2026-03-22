@@ -230,6 +230,13 @@
 .app-view {
   min-height: calc(100vh - (var(--space-lg) * 2) - var(--header-height) - var(--space-lg));
   padding: var(--space-sm);
+  outline: none;
+}
+
+.app-view:focus,
+.app-view:focus-visible {
+  outline: none;
+  box-shadow: none;
 }
 
 .view-placeholder {

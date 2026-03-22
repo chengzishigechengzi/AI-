@@ -1,0 +1,5 @@
+.codex/
+node_modules/
+local-ai.config.json
+__codex_check.js
+__check_index.js

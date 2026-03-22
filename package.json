@@ -1,0 +1,8 @@
+{
+  "name": "ai-usability-workspace",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node ai-proxy-server.js"
+  }
+}
