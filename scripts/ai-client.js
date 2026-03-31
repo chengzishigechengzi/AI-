@@ -3,6 +3,7 @@
   const DEFAULT_REMOTE_CONFIG = {
     enabled: false,
     endpoint: "",
+    fallbackEndpoints: [],
     apiKey: "",
     apiKeyHeader: "",
     authScheme: "Bearer",
@@ -50,6 +51,14 @@
     };
   }
 
+  function getEndpointCandidates(config) {
+    const endpoints = [config.endpoint]
+      .concat(Array.isArray(config.fallbackEndpoints) ? config.fallbackEndpoints : [])
+      .filter(Boolean);
+
+    return endpoints.filter((endpoint, index) => endpoints.indexOf(endpoint) === index);
+  }
+
   function normalizeAnalyzeResponse(data) {
     if (Array.isArray(data)) {
       return data;
@@ -90,12 +99,7 @@
     throw new Error("ai-invalid-answer-response");
   }
 
-  async function requestRemote(action, payload) {
-    const config = getConfig();
-    if (!config.enabled || !config.endpoint) {
-      throw new Error("ai-endpoint-not-configured");
-    }
-
+  async function requestRemoteOnce(endpoint, action, payload, config) {
     const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
     const timeoutId = controller
       ? global.setTimeout(() => {
@@ -104,7 +108,7 @@
       : null;
 
     try {
-      const response = await global.fetch(config.endpoint, {
+      const response = await global.fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -131,6 +135,26 @@
         global.clearTimeout(timeoutId);
       }
     }
+  }
+
+  async function requestRemote(action, payload) {
+    const config = getConfig();
+    const endpoints = getEndpointCandidates(config);
+    if (!config.enabled || !endpoints.length) {
+      throw new Error("ai-endpoint-not-configured");
+    }
+
+    let lastError = null;
+
+    for (const endpoint of endpoints) {
+      try {
+        return await requestRemoteOnce(endpoint, action, payload, config);
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    throw lastError || new Error("ai-request-failed");
   }
 
   async function analyzePageTest(payload, options) {

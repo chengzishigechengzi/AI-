@@ -177,6 +177,35 @@
     return state.hasGenerated && !state.isSaved;
   }
 
+  function resolveAiErrorMessage(error) {
+    const rawMessage = String(error?.message || "").trim();
+    if (!rawMessage) {
+      return "AI未连接成功";
+    }
+
+    if (rawMessage === "body-too-large" || /Request body too large/i.test(rawMessage)) {
+      return "上传图片过大，请压缩后重试";
+    }
+
+    if (rawMessage === "ai-endpoint-not-configured") {
+      return "AI接口未配置";
+    }
+
+    if (/Failed to fetch|NetworkError|fetch failed/i.test(rawMessage)) {
+      return "AI代理请求失败，请检查本地服务或线上部署状态";
+    }
+
+    if (/timeout|aborted/i.test(rawMessage)) {
+      return "AI响应超时，请稍后重试";
+    }
+
+    if (/remote-http-|Invalid JSON body|AI server error/i.test(rawMessage)) {
+      return "AI服务返回异常，请稍后重试";
+    }
+
+    return rawMessage;
+  }
+
   function createPageTestPage() {
     return `
       <section class="page-test-workspace" data-page-test-root>
@@ -1507,6 +1536,9 @@
       if (requestId !== generationRequestId) {
         return;
       }
+
+      const errorMessage = resolveAiErrorMessage(error);
+      console.error("[PageTest] analyze failed:", error);
 
       state.resultSections = [];
       state.generatedContext = null;

@@ -458,6 +458,132 @@ function buildEfficiencyRepairPrompt(payload, sections, reason) {
   ].join("\n");
 }
 
+function buildAnalyzeFormatRepairPrompt(payload, rawContent) {
+  const isFlowTest = payload?.route === "flow-test";
+  const targetSchema = {
+    sections: isFlowTest
+      ? [
+          {
+            theme: "completion",
+            title: "1. 任务完成度",
+            badge: "可完成",
+            body: ["我能找到必要入口。", "我大致能完成任务，但其中一步让我停顿。"],
+            notes: ["补强关键步骤提示。"],
+            metrics: [],
+          },
+          {
+            theme: "efficiency",
+            title: "2. 效率与流畅度",
+            badge: "流畅",
+            body: [
+              "步骤：①我先完成第一步真实操作——②我再完成第二步真实操作——③最后完成第三步真实操作。",
+              "我在第二步和第三步之间会确认自己有没有做对。",
+            ],
+            notes: ["减少中间判断成本。"],
+            metrics: [
+              { value: "约 1 分钟", label: "完成时长" },
+              { value: "0 次", label: "回退次数" },
+            ],
+          },
+          {
+            theme: "cognition",
+            title: "3. 理解与认知匹配",
+            badge: "清晰",
+            body: ["我能看懂主要按钮和区域。", "某个区域名称如果再直白一点会更好懂。"],
+            notes: ["优化文案和区域标识。"],
+            metrics: [],
+          },
+          {
+            theme: "errors",
+            title: "4. 错误与容错性",
+            badge: "轻微",
+            body: ["我会担心自己点错一步。", "如果提示更明确，我会更安心。"],
+            notes: ["补强错误提示和回退路径。"],
+            metrics: [],
+          },
+          {
+            theme: "satisfaction",
+            title: "5. 主观体验与满意度",
+            badge: "一般",
+            body: ["整体可以用。", "如果更顺一点，我会更愿意继续用。"],
+            notes: ["继续优化整体节奏和反馈。"],
+            metrics: [],
+          },
+        ]
+      : [
+          {
+            theme: "visual",
+            title: "1. 视觉顺序",
+            badge: "良好",
+            body: ["我第一眼先看到主要区域。", "我会再去找最关键的操作入口。"],
+            notes: ["增强关键区域的第一视觉优先级。"],
+            metrics: [],
+          },
+          {
+            theme: "completion",
+            title: "2. 任务完成度",
+            badge: "可完成",
+            body: ["我能找到必要入口。", "我基本可以完成任务。"],
+            notes: ["补强容易停顿步骤的反馈。"],
+            metrics: [],
+          },
+          {
+            theme: "efficiency",
+            title: "3. 效率与流畅度",
+            badge: "流畅",
+            body: [
+              "步骤：①我先完成第一步真实操作——②我再完成第二步真实操作——③最后完成第三步真实操作。",
+              "我在某一步会停一下确认自己有没有做对。",
+            ],
+            notes: ["减少步骤之间的犹豫点。"],
+            metrics: [
+              { value: "约 1 分钟", label: "完成时长" },
+              { value: "0 次", label: "回退次数" },
+            ],
+          },
+          {
+            theme: "cognition",
+            title: "4. 理解与认知匹配",
+            badge: "清晰",
+            body: ["我大体能看懂页面文案。", "如果区域命名再直白一点会更快理解。"],
+            notes: ["优化文案和标识。"],
+            metrics: [],
+          },
+          {
+            theme: "errors",
+            title: "5. 错误与容错性",
+            badge: "轻微",
+            body: ["我会担心自己漏掉某一步。", "错误提示如果更明确会更好。"],
+            notes: ["补强防错提示和恢复路径。"],
+            metrics: [],
+          },
+          {
+            theme: "satisfaction",
+            title: "6. 主观体验与满意度",
+            badge: "一般",
+            body: ["整体可以用。", "如果更顺一点，我会更愿意继续用。"],
+            notes: ["继续优化整体体验节奏。"],
+            metrics: [],
+          },
+        ],
+  };
+
+  return [
+    "你现在不是重新分析图片，而是把下面这段 AI 原始分析结果整理成系统要求的 JSON。",
+    "必须保留原意，不要新增图片中不存在的按钮、区域、步骤，不要脑补。",
+    "如果原文某处看不清或没有明确提到，就保守表达，不要编造。",
+    "你必须只返回 JSON，不要输出解释。",
+    "尤其注意：效率与流畅度模块的 body 第一条必须严格写成“步骤：①xxx——②xxx——③xxx”这种链式步骤。",
+    "如果原始分析没有把步骤写完整，也要根据原始分析里已经出现的信息，尽量整理成完整步骤链；如果确实无法判断，就在某一步写“根据当前页面无法判断”。",
+    "",
+    "原始分析内容如下：",
+    String(rawContent || ""),
+    "",
+    "请整理成下面这种 JSON 结构：",
+    JSON.stringify(targetSchema, null, 2),
+  ].join("\n");
+}
+
 function buildFollowUpPrompt(payload) {
   return [
     "你现在仍然要继续扮演同一个真实用户，而不是分析师。",
@@ -522,7 +648,7 @@ function buildChatCompletionsBody(action, payload, config, options = {}) {
   const prompt =
     options.promptOverride ||
     (action === "followup" ? buildFollowUpPrompt(payload) : buildAnalyzePrompt(payload, options));
-  const imageParts = collectAnalyzeImages(payload).flatMap((item) => [
+  const imageParts = (options.omitImages ? [] : collectAnalyzeImages(payload)).flatMap((item) => [
         { type: "text", text: item.label },
         { type: "image_url", image_url: { url: item.url } },
       ]);
@@ -550,7 +676,7 @@ function buildResponsesBody(action, payload, config, options = {}) {
   const prompt =
     options.promptOverride ||
     (action === "followup" ? buildFollowUpPrompt(payload) : buildAnalyzePrompt(payload, options));
-  const imageParts = collectAnalyzeImages(payload).flatMap((item) => [
+  const imageParts = (options.omitImages ? [] : collectAnalyzeImages(payload)).flatMap((item) => [
         { type: "input_text", text: item.label },
         { type: "input_image", image_url: item.url },
       ]);
@@ -582,6 +708,10 @@ function parseRemoteResponse(action, data, config, options = {}) {
   const rawContent = config.endpoint.includes("/responses")
     ? getResponsesTextContent(data)
     : getMessageTextContent(data?.choices?.[0]?.message?.content);
+
+  if (options.returnRawContent) {
+    return String(rawContent || "");
+  }
 
   if (typeof options.customParser === "function") {
     return options.customParser(rawContent);
@@ -664,7 +794,24 @@ async function proxyToRemote(body) {
 
   const action = body?.action === "followup" ? "followup" : "analyze";
   const payload = body?.payload || {};
-  const firstResult = await requestRemoteOnce(action, payload, config);
+  const firstResult =
+    action === "followup"
+      ? await requestRemoteOnce(action, payload, config)
+      : await (async () => {
+          const rawAnalyzeContent = await requestRemoteOnce(action, payload, config, {
+            returnRawContent: true,
+          });
+
+          try {
+            return parseAnalyzeResult(rawAnalyzeContent);
+          } catch (error) {
+            return requestRemoteOnce(action, payload, config, {
+              promptOverride: buildAnalyzeFormatRepairPrompt(payload, rawAnalyzeContent),
+              customParser: parseAnalyzeResult,
+              omitImages: true,
+            });
+          }
+        })();
 
   if (action === "followup") {
     return firstResult;
@@ -689,15 +836,15 @@ async function proxyToRemote(body) {
   }
 
   const thirdResult = await requestRemoteOnce(action, payload, config, {
-    retryReason: `${secondValidation.reason} 这已经是最后一次纠正。你必须只依据图片中的真实控件和真实顺序输出效率与流畅度。第一条 body 必须原样采用这种格式：步骤：①xxx——②xxx——③xxx——④xxx。不要写概括句代替步骤链，不要省略任何关键操作。不要输出关键步数这项指标。`,
-  });
-  const thirdValidation = validateAnalyzeSections(thirdResult?.sections);
-  if (thirdValidation.ok) {
-    return thirdResult;
-  }
+      retryReason: `${secondValidation.reason} 这已经是最后一次纠正。你必须只依据图片中的真实控件和真实顺序输出效率与流畅度。第一条 body 必须原样采用这种格式：步骤：①xxx——②xxx——③xxx——④xxx。不要写概括句代替步骤链，不要省略任何关键操作。不要输出关键步数这项指标。`,
+    });
+    const thirdValidation = validateAnalyzeSections(thirdResult?.sections);
+    if (thirdValidation.ok) {
+      return thirdResult;
+    }
 
-  throw new Error(`analyze-format-invalid: ${thirdValidation.reason}`);
-}
+    return thirdResult?.sections?.length ? thirdResult : mergedResult?.sections?.length ? mergedResult : firstResult;
+  }
 
 function visualIcon(type) {
   const icons = {
