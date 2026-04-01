@@ -7,7 +7,7 @@
     apiKey: "",
     apiKeyHeader: "",
     authScheme: "Bearer",
-    timeoutMs: 120000,
+    timeoutMs: 240000,
     headers: {},
   };
 
