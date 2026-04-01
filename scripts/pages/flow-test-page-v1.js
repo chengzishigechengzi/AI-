@@ -1899,6 +1899,91 @@
     return "";
   }
 
+  function optimizeImageAsset(file, image, sourceDataUrl) {
+    return new Promise((resolve, reject) => {
+      const originalWidth = Number(image.width) || 0;
+      const originalHeight = Number(image.height) || 0;
+
+      if (!originalWidth || !originalHeight) {
+        resolve({
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          dataUrl: sourceDataUrl,
+          width: originalWidth,
+          height: originalHeight,
+        });
+        return;
+      }
+
+      const maxLongSide = 1440;
+      const longestSide = Math.max(originalWidth, originalHeight);
+      const scale = longestSide > maxLongSide ? maxLongSide / longestSide : 1;
+      const targetWidth = Math.max(1, Math.round(originalWidth * scale));
+      const targetHeight = Math.max(1, Math.round(originalHeight * scale));
+
+      if (scale === 1 && file.size <= 1.5 * 1024 * 1024) {
+        resolve({
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          dataUrl: sourceDataUrl,
+          width: originalWidth,
+          height: originalHeight,
+        });
+        return;
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+      const context = canvas.getContext("2d");
+      if (!context) {
+        resolve({
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          dataUrl: sourceDataUrl,
+          width: originalWidth,
+          height: originalHeight,
+        });
+        return;
+      }
+
+      context.drawImage(image, 0, 0, targetWidth, targetHeight);
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            resolve({
+              name: file.name,
+              type: file.type,
+              size: file.size,
+              dataUrl: sourceDataUrl,
+              width: originalWidth,
+              height: originalHeight,
+            });
+            return;
+          }
+
+          const compressedReader = new FileReader();
+          compressedReader.onerror = () => reject(new Error("compress-read-error"));
+          compressedReader.onload = () =>
+            resolve({
+              name: file.name,
+              type: blob.type || "image/jpeg",
+              size: blob.size,
+              dataUrl: String(compressedReader.result || sourceDataUrl),
+              width: targetWidth,
+              height: targetHeight,
+            });
+          compressedReader.readAsDataURL(blob);
+        },
+        "image/jpeg",
+        0.82
+      );
+    });
+  }
+
   function readImageFile(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -1906,15 +1991,7 @@
       reader.onerror = () => reject(new Error("read-error"));
       reader.onload = () => {
         const image = new Image();
-        image.onload = () =>
-          resolve({
-            name: file.name,
-            type: file.type,
-            size: file.size,
-            dataUrl: String(reader.result || ""),
-            width: image.width,
-            height: image.height,
-          });
+        image.onload = () => optimizeImageAsset(file, image, String(reader.result || "")).then(resolve).catch(reject);
         image.onerror = () => reject(new Error("image-error"));
         image.src = String(reader.result || "");
       };
