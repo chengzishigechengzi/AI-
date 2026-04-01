@@ -1061,6 +1061,111 @@ function buildMockResponse(body) {
   };
 }
 
+// Override the earlier verbose prompt builders with a shorter, more stable version.
+function buildAnalyzePrompt(payload, options = {}) {
+  const isFlowTest = payload?.route === "flow-test";
+  const personaName = payload?.persona?.role || payload?.persona?.name || "目标用户";
+  const personaDescription = payload?.persona?.description || "无";
+  const taskDescription = payload?.taskDescription || "无";
+  const actionDescriptions = Array.isArray(payload?.actionDescriptions) ? payload.actionDescriptions : [];
+  const retryReason = String(options?.retryReason || "").trim();
+  const sectionSchema = isFlowTest
+    ? [
+        { theme: "completion", title: "1. 任务完成度", badge: "可完成", body: ["条目1", "条目2"], notes: ["建议"], metrics: [] },
+        {
+          theme: "efficiency",
+          title: "2. 效率与流畅度",
+          badge: "流畅",
+          body: ["步骤：①xxx——②xxx——③xxx", "补充说明"],
+          notes: ["建议"],
+          metrics: [{ value: "约1分钟", label: "完成时长" }, { value: "0次", label: "回退次数" }],
+        },
+        { theme: "cognition", title: "3. 理解与认知匹配", badge: "清晰", body: ["条目1", "条目2"], notes: ["建议"], metrics: [] },
+        { theme: "errors", title: "4. 错误与容错性", badge: "轻微", body: ["条目1", "条目2"], notes: ["建议"], metrics: [] },
+        { theme: "satisfaction", title: "5. 主观体验与满意度", badge: "一般", body: ["条目1", "条目2"], notes: ["建议"], metrics: [] },
+      ]
+    : [
+        { theme: "visual", title: "1. 视觉顺序", badge: "良好", body: ["条目1", "条目2"], notes: ["建议"], metrics: [] },
+        { theme: "completion", title: "2. 任务完成度", badge: "可完成", body: ["条目1", "条目2"], notes: ["建议"], metrics: [] },
+        {
+          theme: "efficiency",
+          title: "3. 效率与流畅度",
+          badge: "流畅",
+          body: ["步骤：①xxx——②xxx——③xxx", "补充说明"],
+          notes: ["建议"],
+          metrics: [{ value: "约1分钟", label: "完成时长" }, { value: "0次", label: "回退次数" }],
+        },
+        { theme: "cognition", title: "4. 理解与认知匹配", badge: "清晰", body: ["条目1", "条目2"], notes: ["建议"], metrics: [] },
+        { theme: "errors", title: "5. 错误与容错性", badge: "轻微", body: ["条目1", "条目2"], notes: ["建议"], metrics: [] },
+        { theme: "satisfaction", title: "6. 主观体验与满意度", badge: "一般", body: ["条目1", "条目2"], notes: ["建议"], metrics: [] },
+      ];
+
+  return [
+    "你现在是一位真实用户，不是分析师。",
+    "必须完全依据截图、用户画像、任务描述作答，不能猜测。",
+    "如果截图里看不清，请写“根据当前页面无法判断”。",
+    "必须返回 JSON，不能输出任何额外解释。",
+    `测试类型：${isFlowTest ? "流程测试" : "页面测试"}`,
+    `用户画像名称：${personaName}`,
+    `用户画像描述：${personaDescription}`,
+    `任务描述：${taskDescription}`,
+    actionDescriptions.length ? `流程操作说明：${actionDescriptions.join("；")}` : "",
+    retryReason ? `补充纠正要求：${retryReason}` : "",
+    "效率与流畅度模块强制要求：",
+    "1. body 第一条必须是完整步骤链，格式必须是：步骤：①xxx——②xxx——③xxx。",
+    "2. 每一步必须写真实控件、区域、输入框或按钮名称。",
+    "3. 不允许跳步、合并、脑补。",
+    "4. body 可以详细展开，不限制条数，但至少2条。",
+    "请整理成以下 JSON 结构：",
+    JSON.stringify({ sections: sectionSchema }, null, 2),
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
+function buildAnalyzeFormatRepairPrompt(payload, rawContent) {
+  return [
+    "下面是上一轮 AI 的原始回答，请你只做格式整理，不重新分析。",
+    "必须保留原意，不得编造截图里没有的内容。",
+    "必须只返回 JSON。",
+    buildAnalyzePrompt(payload),
+    "",
+    "原始回答：",
+    String(rawContent || ""),
+  ].join("\n");
+}
+
+function buildEfficiencyRepairPrompt(payload, sections, reason) {
+  return [
+    "请你只重写“效率与流畅度”这一个模块，返回 JSON：{ \"section\": {...} }。",
+    "严格依据已有分析和截图信息，不得编造。",
+    "body 第一条必须严格写成：步骤：①xxx——②xxx——③xxx。",
+    "每一步都要写具体控件或区域名称。",
+    "不允许输出关键步数这项指标。",
+    `当前问题：${String(reason || "效率模块格式不符合要求")}`,
+    `已有 sections：${JSON.stringify(sections || [], null, 2)}`,
+  ].join("\n");
+}
+
+function buildFollowUpPrompt(payload) {
+  const personaName = payload?.persona?.role || payload?.persona?.name || "该用户";
+  const personaDescription = payload?.persona?.description || "无";
+  const taskDescription = payload?.taskDescription || "无";
+  const question = payload?.question || "无";
+  return [
+    "你现在仍然必须扮演同一个真实用户，而不是分析师。",
+    "所有追问回答必须严格绑定本次原始页面截图、用户画像和任务。",
+    "不知道或看不清的内容，直接写“根据当前页面无法判断”。",
+    "不要新增截图里不存在的按钮、区域或步骤。",
+    "用第一人称回答，语气延续用户画像，不堆砌专业术语。",
+    "只返回 JSON，格式为：{ \"answer\": \"...\" }。",
+    `用户画像名称：${personaName}`,
+    `用户画像描述：${personaDescription}`,
+    `任务描述：${taskDescription}`,
+    `追问问题：${question}`,
+  ].join("\n");
+}
+
 async function handleAiRequest(request, response) {
   try {
     const body = await readRequestBody(request);
